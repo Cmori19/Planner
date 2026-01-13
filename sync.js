@@ -13,8 +13,21 @@
     "settings"
   ];
 
-  async function isLocalEmpty() {
-  for (const storeName of STORE_LIST) {
+  const USER_DATA_STORES = [
+  "todos",
+  "journal",
+  "projects",
+  "actions",
+  "habits",
+  "habitCompletions",
+  "meals",
+  "mealPlans",
+  "notes"
+];
+
+
+async function isLocalUserDataEmpty() {
+  for (const storeName of USER_DATA_STORES) {
     const items = await listLocal(storeName);
     if (items.length > 0) return false;
   }
@@ -163,19 +176,21 @@ function hasFirebase() {
     const order = Array.isArray(opts.storeOrder) ? opts.storeOrder : STORE_LIST;
 
     // Pull then push (bi-directional, last-write-wins by updatedAt)
- const localWasEmpty = await isLocalEmpty();
+ const localUserDataWasEmpty = await isLocalUserDataEmpty();
 
 // Always pull first
 for (const storeName of order) {
   await pullStore(uid, fs, storeName);
 }
 
-// Only push if local was NOT empty before pull
-if (!localWasEmpty) {
+// 🚨 CRITICAL SAFETY RULE
+// Never push if local user data was empty
+if (!localUserDataWasEmpty) {
   for (const storeName of order) {
     await pushStore(uid, fs, storeName);
   }
 }
+
 
     const ts = nowMs();
     setLastSyncAt(ts);
@@ -221,6 +236,7 @@ if (!localWasEmpty) {
     setTopbarSyncMeta();
   });
 })();
+
 
 
 
