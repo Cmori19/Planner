@@ -213,9 +213,21 @@
     return a;
   }
 
-  async function deleteAction(id) {
-    await markDeleted(STORES.actions, id);
+async function deleteAction(id) {
+  // Delete the action
+  await markDeleted(STORES.actions, id);
+
+  // Also delete any linked to-dos
+  const todos = await getAll(STORES.todos);
+  const linked = todos.filter(t => !t._deleted && t.actionId === id);
+
+  for (const t of linked) {
+    t._deleted = true;
+    t.deletedAt = nowTs();
+    await put(STORES.todos, t);
   }
+}
+
 
   async function upsertTodo(input) {
     const id = input.id || uid();
@@ -510,3 +522,4 @@
     deleteNote
   };
 })();
+
