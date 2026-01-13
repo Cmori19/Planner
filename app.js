@@ -1602,55 +1602,61 @@ return (await window.DB.getAll(window.DB.STORES.projects))
     } else {
       if (!selectedProjectId) selectedProjectId = projects[0].id;
 
-      for (const p of projects) {
-        const li = document.createElement("li");
-        li.innerHTML = `
-          <div class="list__left">
-            <div class="titleClamp">
-              <div><strong>${escapeHtml(p.name)}</strong></div>
-              <div class="muted">Tap to view</div>
-            </div>
-          </div>
-          <div class="list__right">
-  <span class="pill">Project</span>
-  <button class="iconBtn" title="Archive project">🗄</button>
-  <button class="iconBtn" title="Delete project">🗑</button>
-</div>
+     for (const p of projects) {
+  const li = document.createElement("li");
+  li.innerHTML = `
+    <div class="list__left">
+      <div class="titleClamp">
+        <div><strong>${escapeHtml(p.name)}</strong></div>
+        <div class="muted">Tap to view</div>
+      </div>
+    </div>
+    <div class="list__right">
+      <span class="pill">Project</span>
+      <button class="iconBtn" title="Archive project">🗄</button>
+      <button class="iconBtn" title="Delete project">🗑</button>
+    </div>
+  `; // <-- template literal ends here
 
-const [archiveBtn, deleteBtn] = li.querySelectorAll("button");
+  const [archiveBtn, deleteBtn] = li.querySelectorAll("button");
 
-archiveBtn.addEventListener("click", async (ev) => {
-  ev.stopPropagation();
+  archiveBtn.addEventListener("click", async (ev) => {
+    ev.stopPropagation();
 
-  if (!p.archived) {
-    const ok = confirm("Archive this project and all its actions?");
+    if (!p.archived) {
+      const ok = confirm("Archive this project and all its actions?");
+      if (!ok) return;
+      await window.DB.archiveProject(p.id);
+    } else {
+      const ok = confirm("Unarchive this project?");
+      if (!ok) return;
+      await window.DB.unarchiveProject(p.id);
+    }
+
+    await refreshProjectsAndActions();
+    await refreshActionsUI();
+  });
+
+  deleteBtn.addEventListener("click", async (ev) => {
+    ev.stopPropagation();
+    const ok = confirm("Delete this project and ALL its actions?");
     if (!ok) return;
-    await window.DB.archiveProject(p.id);
-  } else {
-    const ok = confirm("Unarchive this project?");
-    if (!ok) return;
-    await window.DB.unarchiveProject(p.id);
-  }
 
-  await refreshProjectsAndActions();
-  await refreshActionsUI();
-});
-
-deleteBtn.addEventListener("click", async (ev) => {
-  ev.stopPropagation();
-  const ok = confirm("Delete this project and ALL its actions?");
-  if (!ok) return;
-
-  await window.DB.deleteProjectCascade(p.id);
-  await refreshProjectsAndActions();
-  await refreshActionsUI();
-  await refreshTodoDetail();
-  await refreshDashboard();
-});
-
-
-        `;
-
+    await window.DB.deleteProjectCascade(p.id);
+    await refreshProjectsAndActions();
+    await refreshActionsUI();
+    await refreshTodoDetail();
+    await refreshDashboard();
+  });
+li.addEventListener("click", async () => {
+    selectedProjectId = p.id;
+    setActionsMode("projects");
+    await refreshActionsForProject();
+    await loadProjectPane();
+  });
+  // Append the <li> to your list container
+  projectList.appendChild(li);
+}
   const archiveBtn = li.querySelector("button");
 
 archiveBtn.addEventListener("click", async (ev) => {
@@ -1706,7 +1712,7 @@ archiveBtn.addEventListener("click", async (ev) => {
 
   async function refreshActionsUI() {
     const projects = (await window.DB.getAll(window.DB.STORES.projects)).filter(p => !p._deleted);
-    const actions = (await window.DB.getAll(window.DB.STORES.actions)).filter(a => !a._deleted && !a.archived););
+    const actions = (await window.DB.getAll(window.DB.STORES.actions)).filter(a => !a._deleted && !a.archived);
 
     const projName = (id) => projects.find(p => p.id === id)?.name || "—";
 
@@ -1873,7 +1879,7 @@ right.appendChild(delBtn);
   }
 
   async function refreshActionsForProject() {
-    const actions = (await window.DB.getAll(window.DB.STORES.actions)).filter(a => !a._deleted && !a.archived););
+    const actions = (await window.DB.getAll(window.DB.STORES.actions)).filter(a => !a._deleted && !a.archived);
 
     const prioSet = filterState.projectPriority;
     const statusSet = filterState.projectStatus;
@@ -2712,6 +2718,7 @@ mealsWrap.classList.toggle("stack", mealsListHidden);
 
   init();
 })();
+
 
 
 
