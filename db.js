@@ -182,6 +182,55 @@
     await put(STORES.projects, p);
     return p;
   }
+async function archiveProject(projectId) {
+  const p = await getOne(STORES.projects, projectId);
+  if (!p || p._deleted) return;
+
+  p.archived = true;
+  p.updatedAt = nowTs();
+  await put(STORES.projects, p);
+
+  const actions = await getAll(STORES.actions);
+  const linked = actions.filter(a => !a._deleted && a.projectId === projectId);
+
+  for (const a of linked) {
+    a.archived = true;
+    a.updatedAt = nowTs();
+    await put(STORES.actions, a);
+  }
+}
+ async function unarchiveProject(projectId) {
+  const p = await getOne(STORES.projects, projectId);
+  if (!p || p._deleted) return;
+
+  p.archived = false;
+  p.updatedAt = nowTs();
+  await put(STORES.projects, p);
+
+  const actions = await getAll(STORES.actions);
+  const linked = actions.filter(a => !a._deleted && a.projectId === projectId);
+
+  for (const a of linked) {
+    a.archived = false;
+    a.updatedAt = nowTs();
+    await put(STORES.actions, a);
+  }
+}
+async function deleteProjectCascade(projectId) {
+  const p = await getOne(STORES.projects, projectId);
+  if (!p || p._deleted) return;
+
+  p._deleted = true;
+  p.deletedAt = nowTs();
+  await put(STORES.projects, p);
+
+  const actions = await getAll(STORES.actions);
+  const linked = actions.filter(a => !a._deleted && a.projectId === projectId);
+
+  for (const a of linked) {
+    await deleteAction(a.id); // already cascades to to-dos
+  }
+}
 
   async function upsertAction(input) {
     const id = input.id || uid();
@@ -191,6 +240,7 @@
       id,
       createdAt: nowTs(),
       _deleted: false
+      archived: false,
     };
 
     rec.title = input.title || rec.title || "";
@@ -520,8 +570,12 @@ async function deleteAction(id) {
     deleteMealPlan,
     upsertNote,
     updateNote,
-    deleteNote
+    deleteNote,
+    archiveProject,
+unarchiveProject,
+deleteProjectCascade
   };
 })();
+
 
 
