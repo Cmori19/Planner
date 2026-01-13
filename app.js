@@ -1657,26 +1657,6 @@ li.addEventListener("click", async () => {
   // Append the <li> to your list container
   projectList.appendChild(li);
 }
-  const archiveBtn = li.querySelector("button");
-
-archiveBtn.addEventListener("click", async (ev) => {
-  ev.stopPropagation();
-  const ok = confirm("Archive this project?");
-  if (!ok) return;
-
-  await window.DB.updateProject(p.id, { archived: true });
-  await refreshProjectsAndActions();
-  await refreshActionsUI();
-});
-        li.addEventListener("click", async () => {
-          selectedProjectId = p.id;
-          setActionsMode("projects");
-          await refreshActionsForProject();
-          await loadProjectPane();
-        });
-        projectList.appendChild(li);
-      }
-    }
 
     await loadProjectPane();
     await refreshActionsUI();
@@ -2718,6 +2698,7 @@ mealsWrap.classList.toggle("stack", mealsListHidden);
 
   init();
 })();
+
 
 
 
