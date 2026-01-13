@@ -239,7 +239,7 @@ async function deleteProjectCascade(projectId) {
     const rec = existing && !existing._deleted ? existing : {
       id,
       createdAt: nowTs(),
-      _deleted: false
+      _deleted: false,
       archived: false,
     };
 
@@ -576,6 +576,7 @@ unarchiveProject,
 deleteProjectCascade
   };
 })();
+
 
 
 
