@@ -1583,59 +1583,75 @@ return (await window.DB.getAll(window.DB.STORES.projects))
   actionSort2?.addEventListener("change", refreshActionsForProject);
 
   async function refreshProjectsAndActions() {
-    // Projects list + modal project dropdown + filters
-    const projects = await getProjectsActive();
+  const projects = await getProjectsActive();
 
-    // Modal project select
-    await populateProjectSelect(modalActionProject, true);
+  await populateProjectSelect(modalActionProject, true);
+  buildProjectFilterPanel(projects);
 
-    // Build project filter panel for All Actions view
-    buildProjectFilterPanel(projects);
+  projectList.innerHTML = "";
 
-    // Render project list
-    projectList.innerHTML = "";
-    if (!projects.length) {
+  if (!projects.length) {
+    const li = document.createElement("li");
+    li.innerHTML = `<div class="list__left"><div class="muted">No projects yet.</div></div>`;
+    projectList.appendChild(li);
+    selectedProjectId = null;
+  } else {
+    if (!selectedProjectId) selectedProjectId = projects[0].id;
+
+    for (const p of projects) {
       const li = document.createElement("li");
-      li.innerHTML = `<div class="list__left"><div class="muted">No projects yet. Add one to organise actions.</div></div>`;
+      li.innerHTML = `
+        <div class="list__left">
+          <div class="titleClamp">
+            <div><strong>${escapeHtml(p.name)}</strong></div>
+            <div class="muted">Tap to view</div>
+          </div>
+        </div>
+        <div class="list__right">
+          <span class="pill">Project</span>
+          <button class="iconBtn" title="Archive project">🗄</button>
+          <button class="iconBtn" title="Delete project">🗑</button>
+        </div>
+      `;
+
+      const [archiveBtn, deleteBtn] = li.querySelectorAll("button");
+
+      archiveBtn.addEventListener("click", async (ev) => {
+        ev.stopPropagation();
+        if (p.archived) {
+          await window.DB.unarchiveProject(p.id);
+        } else {
+          await window.DB.archiveProject(p.id);
+        }
+        await refreshProjectsAndActions();
+        await refreshActionsUI();
+      });
+
+      deleteBtn.addEventListener("click", async (ev) => {
+        ev.stopPropagation();
+        if (!confirm("Delete this project and all actions?")) return;
+        await window.DB.deleteProjectCascade(p.id);
+        await refreshProjectsAndActions();
+        await refreshActionsUI();
+        await refreshDashboard();
+      });
+
+      li.addEventListener("click", async () => {
+        selectedProjectId = p.id;
+        setActionsMode("projects");
+        await refreshActionsForProject();
+        await loadProjectPane();
+      });
+
       projectList.appendChild(li);
-      selectedProjectId = null;
-    } else {
-      if (!selectedProjectId) selectedProjectId = projects[0].id;
-
-     for (const p of projects) {
-  const li = document.createElement("li");
-  li.innerHTML = `
-    <div class="list__left">
-      <div class="titleClamp">
-        <div><strong>${escapeHtml(p.name)}</strong></div>
-        <div class="muted">Tap to view</div>
-      </div>
-    </div>
-    <div class="list__right">
-      <span class="pill">Project</span>
-      <button class="iconBtn" title="Archive project">🗄</button>
-      <button class="iconBtn" title="Delete project">🗑</button>
-    </div>
-  `; // <-- template literal ends here
-
-  const [archiveBtn, deleteBtn] = li.querySelectorAll("button");
-
-  archiveBtn.addEventListener("click", async (ev) => {
-    ev.stopPropagation();
-
-    if (!p.archived) {
-      const ok = confirm("Archive this project and all its actions?");
-      if (!ok) return;
-      await window.DB.archiveProject(p.id);
-    } else {
-      const ok = confirm("Unarchive this project?");
-      if (!ok) return;
-      await window.DB.unarchiveProject(p.id);
     }
+  }
 
-    await refreshProjectsAndActions();
-    await refreshActionsUI();
-  });
+  await loadProjectPane();
+  await refreshActionsUI();
+  await refreshActionsForProject();
+}
+
 
   deleteBtn.addEventListener("click", async (ev) => {
     ev.stopPropagation();
@@ -2698,6 +2714,7 @@ mealsWrap.classList.toggle("stack", mealsListHidden);
 
   init();
 })();
+
 
 
 
