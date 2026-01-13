@@ -240,7 +240,7 @@ async function deleteProjectCascade(projectId) {
       id,
       createdAt: nowTs(),
       _deleted: false,
-      archived: false,
+      archived: false
     };
 
     rec.title = input.title || rec.title || "";
@@ -576,6 +576,7 @@ unarchiveProject,
 deleteProjectCascade
   };
 })();
+
 
 
 
