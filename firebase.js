@@ -19,7 +19,13 @@
     firebase.initializeApp(firebaseConfig);
   }
 
-  window.fbAuth = firebase.auth();
-  window.fbDb = firebase.firestore();
-  window.fbDb.settings({ ignoreUndefinedProperties: true });
+window.fbAuth = firebase.auth();
+
+// 🔑 Persist auth across reloads
+window.fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+
+window.fbDb = firebase.firestore();
+window.fbDb.settings({ ignoreUndefinedProperties: true });
+
 })();
+
