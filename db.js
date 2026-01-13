@@ -165,6 +165,7 @@
       id: uid(),
       name,
       notes: "",
+      archived: false,
       createdAt: nowTs(),
       updatedAt: nowTs(),
       _deleted: false
@@ -522,4 +523,5 @@ async function deleteAction(id) {
     deleteNote
   };
 })();
+
 
