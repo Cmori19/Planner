@@ -1160,6 +1160,31 @@
       li.appendChild(left);
       li.appendChild(right);
 
+      // 🗑 Delete task (delete canonical action to prevent regeneration)
+const delBtn = document.createElement("button");
+delBtn.type = "button";
+delBtn.className = "iconBtn";
+delBtn.title = "Delete task";
+delBtn.textContent = "🗑";
+
+delBtn.addEventListener("click", async (ev) => {
+  ev.stopPropagation();
+  const ok = confirm("Delete this task?");
+  if (!ok) return;
+
+  if (t.actionId) {
+    await window.DB.deleteAction(t.actionId);
+  } else {
+    await window.DB.deleteTodo(t.id);
+  }
+
+  await refreshTodoDetail();
+  await refreshProjectsAndActions();
+  await refreshDashboard();
+});
+
+right.appendChild(delBtn);
+
       dot.addEventListener("click", async (ev) => {
         ev.stopPropagation();
         const next = t.status === "Completed" ? "Open" : "Completed";
@@ -1353,8 +1378,8 @@
   btnActionsViewActions?.addEventListener("click", () => { setActionsMode("actions"); refreshProjectsAndActions(); });
 
   async function getProjectsActive() {
-    return (await window.DB.getAll(window.DB.STORES.projects))
-      .filter(p => !p._deleted)
+return (await window.DB.getAll(window.DB.STORES.projects))
+  .filter(p => !p._deleted && !p.archived)
       .sort((a, b) => (a.name || "").localeCompare(b.name || ""));
   }
 
@@ -1586,8 +1611,23 @@
               <div class="muted">Tap to view</div>
             </div>
           </div>
-          <div class="list__right"><span class="pill">Project</span></div>
+          <div class="list__right">
+  <span class="pill">Project</span>
+  <button class="iconBtn" title="Archive project">🗄</button>
+</div>
         `;
+
+  const archiveBtn = li.querySelector("button");
+
+archiveBtn.addEventListener("click", async (ev) => {
+  ev.stopPropagation();
+  const ok = confirm("Archive this project?");
+  if (!ok) return;
+
+  await window.DB.updateProject(p.id, { archived: true });
+  await refreshProjectsAndActions();
+  await refreshActionsUI();
+});
         li.addEventListener("click", async () => {
           selectedProjectId = p.id;
           setActionsMode("projects");
@@ -1751,6 +1791,26 @@ btnSend.remove();
       right.appendChild(prio);
       right.appendChild(statusBtn);
 
+      const delBtn = document.createElement("button");
+delBtn.type = "button";
+delBtn.className = "iconBtn";
+delBtn.title = "Delete action";
+delBtn.textContent = "🗑";
+
+delBtn.addEventListener("click", async (ev) => {
+  ev.stopPropagation();
+  const ok = confirm("Delete this action and all linked tasks?");
+  if (!ok) return;
+
+  await window.DB.deleteAction(a.id);
+  await refreshActionsUI();
+  await refreshTodoDetail();
+  await refreshDashboard();
+});
+
+right.appendChild(delBtn);
+
+
       li.appendChild(left);
       li.appendChild(right);
 
@@ -1848,6 +1908,26 @@ btnSend.remove();
 
       right.appendChild(prio);
       right.appendChild(statusBtn);
+
+      const delBtn = document.createElement("button");
+delBtn.type = "button";
+delBtn.className = "iconBtn";
+delBtn.title = "Delete action";
+delBtn.textContent = "🗑";
+
+delBtn.addEventListener("click", async (ev) => {
+  ev.stopPropagation();
+  const ok = confirm("Delete this action and all linked tasks?");
+  if (!ok) return;
+
+  await window.DB.deleteAction(a.id);
+  await refreshActionsUI();
+  await refreshTodoDetail();
+  await refreshDashboard();
+});
+
+right.appendChild(delBtn);
+
 
       li.appendChild(left);
       li.appendChild(right);
@@ -2598,4 +2678,5 @@ mealsWrap.classList.toggle("stack", mealsListHidden);
 
   init();
 })();
+
 
