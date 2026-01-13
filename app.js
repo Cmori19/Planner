@@ -1102,8 +1102,7 @@
 
     const items = (await window.DB.getByIndex(window.DB.STORES.todos, window.DB.idx.todosByDate, currentTodoDate))
       .filter(x => !x._deleted)
-      .filter(x => filterState.todoPriority.has(x.priority || "Medium"));
-
+   
     items.sort((a, b) => prioRank(b.priority || "Medium") - prioRank(a.priority || "Medium") || (a.createdAt || 0) - (b.createdAt || 0));
 
     todoList.innerHTML = "";
@@ -2599,3 +2598,4 @@ mealsWrap.classList.toggle("stack", mealsListHidden);
 
   init();
 })();
+
