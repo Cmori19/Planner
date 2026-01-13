@@ -65,10 +65,6 @@
     return `users/${uid}/stores/${storeName}/items/${id}`;
   }
 
-  function storeMetaPath(uid, storeName) {
-    return `users/${uid}/stores/${storeName}/meta`;
-  }
-
   async function ensureReady() {
     if (!window.DB) throw new Error("DB not initialised");
     if (!isOnline()) throw new Error("Offline");
@@ -110,9 +106,6 @@
       const ref = col.doc(String(id));
       batch.set(ref, payload, { merge: true });
     }
-
-    const metaRef = fs.doc(storeMetaPath(uid, storeName));
-    batch.set(metaRef, { lastPushedAt: nowMs() }, { merge: true });
 
     await batch.commit();
   }
@@ -215,3 +208,4 @@
     setTopbarSyncMeta();
   });
 })();
+
