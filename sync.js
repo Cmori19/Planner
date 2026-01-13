@@ -13,6 +13,13 @@
     "settings"
   ];
 
+  async function isLocalEmpty() {
+  for (const storeName of STORE_LIST) {
+    const items = await listLocal(storeName);
+    if (items.length > 0) return false;
+  }
+  return true;
+}
   function isOnline() {
     return typeof navigator !== "undefined" ? navigator.onLine : false;
   }
@@ -156,13 +163,19 @@ function hasFirebase() {
     const order = Array.isArray(opts.storeOrder) ? opts.storeOrder : STORE_LIST;
 
     // Pull then push (bi-directional, last-write-wins by updatedAt)
-    for (const storeName of order) {
-      await pullStore(uid, fs, storeName);
-    }
+ const localWasEmpty = await isLocalEmpty();
 
-    for (const storeName of order) {
-      await pushStore(uid, fs, storeName);
-    }
+// Always pull first
+for (const storeName of order) {
+  await pullStore(uid, fs, storeName);
+}
+
+// Only push if local was NOT empty before pull
+if (!localWasEmpty) {
+  for (const storeName of order) {
+    await pushStore(uid, fs, storeName);
+  }
+}
 
     const ts = nowMs();
     setLastSyncAt(ts);
@@ -208,5 +221,6 @@ function hasFirebase() {
     setTopbarSyncMeta();
   });
 })();
+
 
 
