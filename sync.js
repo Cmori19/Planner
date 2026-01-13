@@ -57,9 +57,9 @@
     }
   }
 
-  function hasFirebase() {
-    return !!(getUser() && getFirestore() && window.firebase);
-  }
+function hasFirebase() {
+  return !!(getUser() && getFirestore());
+}
 
   function docRefPath(uid, storeName, id) {
     return `users/${uid}/stores/${storeName}/items/${id}`;
@@ -208,4 +208,5 @@
     setTopbarSyncMeta();
   });
 })();
+
 
