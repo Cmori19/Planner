@@ -1652,33 +1652,6 @@ return (await window.DB.getAll(window.DB.STORES.projects))
   await refreshActionsForProject();
 }
 
-
-  deleteBtn.addEventListener("click", async (ev) => {
-    ev.stopPropagation();
-    const ok = confirm("Delete this project and ALL its actions?");
-    if (!ok) return;
-
-    await window.DB.deleteProjectCascade(p.id);
-    await refreshProjectsAndActions();
-    await refreshActionsUI();
-    await refreshTodoDetail();
-    await refreshDashboard();
-  });
-li.addEventListener("click", async () => {
-    selectedProjectId = p.id;
-    setActionsMode("projects");
-    await refreshActionsForProject();
-    await loadProjectPane();
-  });
-  // Append the <li> to your list container
-  projectList.appendChild(li);
-}
-
-    await loadProjectPane();
-    await refreshActionsUI();
-    await refreshActionsForProject();
-  }
-
   async function loadProjectPane() {
     if (!selectedProjectId) {
       if (projectTitle) projectTitle.textContent = "Project";
@@ -2714,6 +2687,7 @@ mealsWrap.classList.toggle("stack", mealsListHidden);
 
   init();
 })();
+
 
 
 
