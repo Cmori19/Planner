@@ -1617,24 +1617,39 @@ return (await window.DB.getAll(window.DB.STORES.projects))
       const [archiveBtn, deleteBtn] = li.querySelectorAll("button");
 
       archiveBtn.addEventListener("click", async (ev) => {
-        ev.stopPropagation();
-        if (p.archived) {
-          await window.DB.unarchiveProject(p.id);
-        } else {
-          await window.DB.archiveProject(p.id);
-        }
-        await refreshProjectsAndActions();
-        await refreshActionsUI();
-      });
+  ev.stopPropagation();
 
-      deleteBtn.addEventListener("click", async (ev) => {
-        ev.stopPropagation();
-        if (!confirm("Delete this project and all actions?")) return;
-        await window.DB.deleteProjectCascade(p.id);
-        await refreshProjectsAndActions();
-        await refreshActionsUI();
-        await refreshDashboard();
-      });
+  if (!window.DB.archiveProject || !window.DB.unarchiveProject) {
+    alert("Project archive functions not available. Reload the app.");
+    return;
+  }
+
+  if (p.archived) {
+    await window.DB.unarchiveProject(p.id);
+  } else {
+    await window.DB.archiveProject(p.id);
+  }
+
+  await refreshProjectsAndActions();
+  await refreshActionsUI();
+});
+
+ deleteBtn.addEventListener("click", async (ev) => {
+  ev.stopPropagation();
+
+  if (!window.DB.deleteProjectCascade) {
+    alert("Project delete function not available. Reload the app.");
+    return;
+  }
+
+  if (!confirm("Delete this project and all actions?")) return;
+
+  await window.DB.deleteProjectCascade(p.id);
+  await refreshProjectsAndActions();
+  await refreshActionsUI();
+  await refreshDashboard();
+});
+
 
       li.addEventListener("click", async () => {
         selectedProjectId = p.id;
@@ -2687,6 +2702,7 @@ mealsWrap.classList.toggle("stack", mealsListHidden);
 
   init();
 })();
+
 
 
 
